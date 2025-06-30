@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "446149191364",
+    "project_id": "auralis-d4f1e",
+    "storage_bucket": "auralis-d4f1e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:446149191364:android:41ce5d3b06943fc2d80b91",
+        "android_client_info": {
+          "package_name": "com.example.auralis_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "446149191364-mln5q30i4qic097rjr0f12fq5l6qm4mo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.auralis_app",
+            "certificate_hash": "ac365ae0bf8144d2703aeb920adabfac179758ec"
+          }
+        },
+        {
+          "client_id": "446149191364-qcofgoqcd4ovibd6chp8f3h8hhioik9t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsSNKxjlGFfq815_uCRyXZkeYi0__1tLo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "446149191364-qcofgoqcd4ovibd6chp8f3h8hhioik9t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
