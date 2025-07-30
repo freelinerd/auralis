@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:async';
 
 class MeditationView extends StatefulWidget {
   const MeditationView({super.key});
@@ -10,8 +9,7 @@ class MeditationView extends StatefulWidget {
   State<MeditationView> createState() => _MeditationViewState();
 }
 
-class _MeditationViewState extends State<MeditationView>
-    with SingleTickerProviderStateMixin {
+class _MeditationViewState extends State<MeditationView> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
@@ -20,8 +18,7 @@ class _MeditationViewState extends State<MeditationView>
   double selectedMinutes = 10;
   String finalPhrase = '';
 
-  late AnimationController _breathController;
-  List<String> _phrases = [
+  final List<String> _phrases = [
     'Respira profundo, lo estás haciendo bien.',
     'Cada momento de paz es un regalo para tu alma.',
     'Tu bienestar comienza con un respiro.',
@@ -32,11 +29,6 @@ class _MeditationViewState extends State<MeditationView>
   void initState() {
     super.initState();
     _loadMeditationLogs();
-
-    _breathController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
 
     _audioPlayer.onPlayerStateChanged.listen((state) {
       setState(() => isPlaying = state == PlayerState.playing);
@@ -65,7 +57,10 @@ class _MeditationViewState extends State<MeditationView>
     if (isPlaying) {
       await _audioPlayer.pause();
     } else {
-      isCompleted = false;
+      setState(() {
+        isCompleted = false;
+        finalPhrase = '';
+      });
       await _audioPlayer.play(
         UrlSource(
           "https://www.chosic.com/wp-content/uploads/2022/05/sb_aurora(chosic.com).mp3",
@@ -96,7 +91,6 @@ class _MeditationViewState extends State<MeditationView>
 
   @override
   void dispose() {
-    _breathController.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -109,12 +103,16 @@ class _MeditationViewState extends State<MeditationView>
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: Stack(
         children: [
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF8EC5FC), Color(0xFFE0C3FC)],
+                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -129,38 +127,30 @@ class _MeditationViewState extends State<MeditationView>
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 20),
-                ScaleTransition(
-                  scale: Tween(begin: 1.0, end: 1.2).animate(
-                    CurvedAnimation(
-                      parent: _breathController,
-                      curve: Curves.easeInOut,
+                CircleAvatar(
+                  radius: 100,
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                  child: IconButton(
+                    iconSize: 100,
+                    icon: Icon(
+                      isCompleted
+                          ? Icons.check_circle
+                          : isPlaying
+                              ? Icons.pause_circle
+                              : Icons.play_circle,
+                      color: Colors.white,
                     ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 100,
-                    backgroundColor: Colors.white.withOpacity(0.1),
-                    child: IconButton(
-                      iconSize: 100,
-                      icon: Icon(
-                        isCompleted
-                            ? Icons.check_circle
-                            : isPlaying
-                            ? Icons.pause_circle
-                            : Icons.play_circle,
-                        color: Colors.white,
-                      ),
-                      onPressed: togglePlayPause,
-                    ),
+                    onPressed: togglePlayPause,
                   ),
                 ),
                 const SizedBox(height: 20),
                 Text(
                   '${formatTime(_position)} / ${formatTime(_duration)}',
-                  style: const TextStyle(color: Colors.black54),
+                  style: const TextStyle(color: Colors.white),
                 ),
                 Slider(
                   value: _position.inSeconds.toDouble(),
@@ -186,11 +176,11 @@ class _MeditationViewState extends State<MeditationView>
                             onSelected: (_) =>
                                 setState(() => selectedMinutes = m.toDouble()),
                             selectedColor: Colors.white,
-                            backgroundColor: Colors.white24,
+                            backgroundColor: const Color.fromARGB(186, 134, 158, 159),
                             labelStyle: TextStyle(
                               color: selectedMinutes == m
                                   ? Colors.black
-                                  : Colors.black38,
+                                  : Colors.white70,
                             ),
                           ),
                         ),
@@ -199,9 +189,9 @@ class _MeditationViewState extends State<MeditationView>
                 ),
                 if (isCompleted) ...[
                   const SizedBox(height: 30),
-                  Text(
+                  const Text(
                     '¡Sesión completada!',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

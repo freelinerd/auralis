@@ -68,17 +68,13 @@ class _ProfileViewState extends State<ProfileView> {
 
     try {
       File file = File(pickedFile.path);
-      final storageRef = FirebaseStorage.instance.ref().child(
-        'user_profile_photos/${user.uid}.jpg',
-      );
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('user_profile_photos/${user.uid}.jpg');
 
-      // Subir imagen
       await storageRef.putFile(file);
-
-      // Obtener URL de descarga
       final downloadUrl = await storageRef.getDownloadURL();
 
-      // Actualizar perfil de usuario
       await user.updatePhotoURL(downloadUrl);
       await user.reload();
 
@@ -87,7 +83,6 @@ class _ProfileViewState extends State<ProfileView> {
         _isUploading = false;
       });
 
-      // Mostrar mensaje
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Foto de perfil actualizada')),
       );
@@ -95,9 +90,9 @@ class _ProfileViewState extends State<ProfileView> {
       setState(() {
         _isUploading = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al subir imagen: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al subir imagen: $e')),
+      );
     }
   }
 
@@ -132,122 +127,127 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ),
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundImage: _profileImage != null
-                            ? FileImage(_profileImage!)
-                            : (user?.photoURL != null
+            child: RefreshIndicator(
+              onRefresh: _loadMeditationStats,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundImage: _profileImage != null
+                              ? FileImage(_profileImage!)
+                              : (user?.photoURL != null
                                   ? NetworkImage(user!.photoURL!)
                                   : const AssetImage('assets/avatar.png')
-                                        as ImageProvider),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: _pickAndUploadImage,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.grey.shade300),
+                                      as ImageProvider),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: _pickAndUploadImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: const Icon(Icons.edit, size: 18),
                             ),
-                            child: const Icon(Icons.edit, size: 18),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  if (_isUploading)
-                    const CircularProgressIndicator()
-                  else
-                    Column(
-                      children: [
-                        Text(
-                          user?.displayName ?? 'Nombre no disponible',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Text(
-                          user?.email ?? 'Email no disponible',
-                          style: const TextStyle(color: Colors.black45),
                         ),
                       ],
                     ),
-                  const SizedBox(height: 20),
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    const SizedBox(height: 10),
+                    if (_isUploading)
+                      const CircularProgressIndicator()
+                    else
+                      Column(
                         children: [
-                          _statTile(
-                            Icons.timer,
-                            'Total tiempo',
-                            '$_totalMinutes min',
+                          Text(
+                            user?.displayName ?? 'Nombre no disponible',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                          _statTile(
-                            Icons.self_improvement,
-                            'Sesiones',
-                            '${_sessionLogs.length}',
+                          Text(
+                            user?.email ?? 'Email no disponible',
+                            style: const TextStyle(color: Colors.black45),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Historial de sesiones',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                    const SizedBox(height: 20),
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _statTile(
+                              Icons.timer,
+                              'Total tiempo',
+                              '$_totalMinutes min',
+                            ),
+                            _statTile(
+                              Icons.self_improvement,
+                              'Sesiones',
+                              '${_sessionLogs.length}',
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _sessionLogs.isEmpty
-                      ? const Text(
-                          'No hay sesiones registradas.',
-                          style: TextStyle(color: Colors.black45),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _sessionLogs.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(
-                                _sessionLogs[index],
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              leading: const Icon(
-                                Icons.history,
-                                color: Colors.white70,
-                              ),
-                            );
-                          },
+                    const SizedBox(height: 20),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Historial de sesiones',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
-                  const SizedBox(height: 40),
-                ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _sessionLogs.isEmpty
+                        ? const Text(
+                            'No hay sesiones registradas.',
+                            style: TextStyle(color: Colors.black45),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _sessionLogs.length,
+                            itemBuilder: (context, index) {
+                              return Card(
+                                color: Colors.white.withOpacity(0.1),
+                                child: ListTile(
+                                  title: Text(
+                                    _sessionLogs[index],
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  leading: const Icon(Icons.history,
+                                      color: Colors.white70),
+                                ),
+                              );
+                            },
+                          ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ),
@@ -270,6 +270,3 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 }
-
-// This code defines a ProfileView widget that displays the user's profile information, meditation statistics, and session history.
-// It includes a sign-out button and a card showing total meditation time and session count. The session history is displayed in a list format, and the user can edit their profile.

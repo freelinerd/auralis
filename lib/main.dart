@@ -5,6 +5,9 @@ import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/check_auth_view.dart';
 
+// ✅ Agrega esta línea:
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -19,6 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Auralis App',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver], // ✅ Agrega el observer global aquí
       initialRoute: '/',
       routes: {
         '/': (context) => const CheckAuthView(),

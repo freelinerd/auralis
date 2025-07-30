@@ -1,8 +1,41 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'ansiedad_screen.dart';
+import 'dormir_screen.dart';
+import 'morning_screen.dart';
+import 'respiracion_screen.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
+
+  // Funciones de navegación
+  void _goToAnsiedad(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AnsiedadScreen()),
+    );
+  }
+
+  void _goToDormir(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const DormirScreen()),
+    );
+  }
+
+  void _goToManana(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MorningScreen()),
+    );
+  }
+
+  void _goToRespiracion(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RespiracionScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,30 +89,30 @@ class HomeView extends StatelessWidget {
                     mainAxisSpacing: cardSpacing,
                     crossAxisSpacing: cardSpacing,
                     childAspectRatio: 0.9,
-                    children: const [
+                    children: [
                       MeditationCard(
                         title: 'Ansiedad',
                         description: 'Relájate y libera el estrés.',
                         icon: Icons.self_improvement,
-                        onTap: _dummyAction,
+                        onTap: () => _goToAnsiedad(context),
                       ),
                       MeditationCard(
                         title: 'Dormir',
                         description: 'Calma tu mente y descansa.',
                         icon: Icons.nightlight_round,
-                        onTap: _dummyAction,
+                        onTap: () => _goToDormir(context),
                       ),
                       MeditationCard(
                         title: 'Mañana',
                         description: 'Empieza con energía.',
                         icon: Icons.wb_sunny,
-                        onTap: _dummyAction,
+                        onTap: () => _goToManana(context),
                       ),
                       MeditationCard(
                         title: 'Respiración',
                         description: 'Ejercicio consciente.',
                         icon: Icons.air,
-                        onTap: _dummyAction,
+                        onTap: () => _goToRespiracion(context),
                       ),
                     ],
                   ),
@@ -90,10 +123,6 @@ class HomeView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  static void _dummyAction() {
-    // Aquí iría la lógica real
   }
 }
 
