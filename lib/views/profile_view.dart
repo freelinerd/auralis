@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -18,6 +19,7 @@ class _ProfileViewState extends State<ProfileView> {
   int _totalMinutes = 0;
   File? _profileImage;
   bool _isUploading = false;
+  Color _backgroundColor = Colors.white;
 
   @override
   void initState() {
@@ -31,9 +33,14 @@ class _ProfileViewState extends State<ProfileView> {
     int totalMinutes = 0;
 
     for (var log in logs) {
-      final minutes = int.tryParse(log.split('-').last.trim().split(' ').first);
-      if (minutes != null) {
-        totalMinutes += minutes;
+      try {
+        final parts = log.split('-');
+        final minutes = int.tryParse(parts.last.trim().split(' ').first);
+        if (minutes != null) {
+          totalMinutes += minutes;
+        }
+      } catch (_) {
+        continue;
       }
     }
 
@@ -54,8 +61,18 @@ class _ProfileViewState extends State<ProfileView> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(
+    final status = await Permission.photos.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Permiso denegado para acceder a la galería.'),
+        ),
+      );
+      return;
+    }
+
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
     );
@@ -68,9 +85,9 @@ class _ProfileViewState extends State<ProfileView> {
 
     try {
       File file = File(pickedFile.path);
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('user_profile_photos/${user.uid}.jpg');
+      final storageRef = FirebaseStorage.instance.ref().child(
+        'user_profile_photos/${user.uid}.jpg',
+      );
 
       await storageRef.putFile(file);
       final downloadUrl = await storageRef.getDownloadURL();
@@ -90,17 +107,69 @@ class _ProfileViewState extends State<ProfileView> {
       setState(() {
         _isUploading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al subir imagen: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al subir imagen: $e')));
     }
+  }
+
+  void _changeBackground(Color color) {
+    setState(() {
+      _backgroundColor = color;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    ImageProvider imageProvider;
+    if (_profileImage != null) {
+      imageProvider = FileImage(_profileImage!);
+    } else if (user?.photoURL != null) {
+      imageProvider = NetworkImage(user!.photoURL!);
+    } else {
+      imageProvider = const AssetImage('assets/avatar.png');
+    }
 
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.deepPurple),
+              child: Text(
+                'Opciones de fondo',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.circle, color: Colors.white),
+              title: const Text('Fondo Blanco'),
+              onTap: () {
+                Navigator.pop(context);
+                _changeBackground(Colors.white);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.circle, color: Colors.blue),
+              title: const Text('Fondo Azul'),
+              onTap: () {
+                Navigator.pop(context);
+                _changeBackground(Colors.blue.shade100);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.circle, color: Colors.green),
+              title: const Text('Fondo Verde'),
+              onTap: () {
+                Navigator.pop(context);
+                _changeBackground(Colors.green.shade100);
+              },
+            ),
+          ],
+        ),
+      ),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Perfil'),
@@ -117,15 +186,7 @@ class _ProfileViewState extends State<ProfileView> {
       ),
       body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF8EC5FC), Color(0xFFE0C3FC)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
+          Container(color: _backgroundColor),
           SafeArea(
             child: RefreshIndicator(
               onRefresh: _loadMeditationStats,
@@ -139,12 +200,7 @@ class _ProfileViewState extends State<ProfileView> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundImage: _profileImage != null
-                              ? FileImage(_profileImage!)
-                              : (user?.photoURL != null
-                                  ? NetworkImage(user!.photoURL!)
-                                  : const AssetImage('assets/avatar.png')
-                                      as ImageProvider),
+                          backgroundImage: imageProvider,
                         ),
                         Positioned(
                           bottom: 0,
@@ -237,10 +293,14 @@ class _ProfileViewState extends State<ProfileView> {
                                 child: ListTile(
                                   title: Text(
                                     _sessionLogs[index],
-                                    style: const TextStyle(color: Colors.white),
+                                    style: const TextStyle(
+                                      color: Colors.black87,
+                                    ),
                                   ),
-                                  leading: const Icon(Icons.history,
-                                      color: Colors.white70),
+                                  leading: const Icon(
+                                    Icons.history,
+                                    color: Colors.black54,
+                                  ),
                                 ),
                               );
                             },
