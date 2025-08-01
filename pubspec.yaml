@@ -37,6 +37,7 @@ dependencies:
   audio_session: ^0.1.6
   shared_preferences: ^2.2.2
   image_picker: ^1.0.4
+  permision_handler: ^11.3.0
   intl: ^0.18.0
 
   # The following adds the Cupertino Icons font to your application.
